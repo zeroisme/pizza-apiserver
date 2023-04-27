@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pizza-apiserver
+  namespace: pizza-apiserver
+  labels:
+    apiserver: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      apiserver: "true"
+  template:
+    metadata:
+      labels:
+        apiserver: "true"
+    spec:
+      serviceAccountName: apiserver
+      containers:
+      - name: apiserver
+        image: 172.16.3.99:5000/pizza-server:v1
+        imagePullPolicy: Always
+        command: ["/pizza-apiserver"]
+        args:
+        - --etcd-servers=http://localhost:2379
+        - --cert-dir=/tmp/certs
+        - --secure-port=8443
+          #- --v=4
+      - name: etcd
+        image: quay.io/coreos/etcd:v3.2.24
+        workingDir: /tmp

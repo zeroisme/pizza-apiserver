@@ -6,6 +6,8 @@ import (
 	"net"
 
 	"github.com/spf13/cobra"
+	"github.com/zeroisme/pizza-apiserver/pkg/admission/custominitializer"
+	"github.com/zeroisme/pizza-apiserver/pkg/admission/plugin/pizzatoppings"
 	"github.com/zeroisme/pizza-apiserver/pkg/apis/restaurant/v1alpha1"
 	"github.com/zeroisme/pizza-apiserver/pkg/apiserver"
 	clientset "github.com/zeroisme/pizza-apiserver/pkg/generated/clientset/versioned"
@@ -56,7 +58,7 @@ func (o *CustomServerOptions) Config() (*apiserver.Config, error) {
 		}
 		informerFactory := informers.NewSharedInformerFactory(client, c.LoopbackClientConfig.Timeout)
 		o.SharedInformerFactory = informerFactory
-		return []admission.PluginInitializer{}, nil
+		return []admission.PluginInitializer{custominitializer.New(informerFactory)}, nil
 	}
 
 	serverConfig := genericapiserver.NewRecommendedConfig(apiserver.Codecs)
@@ -86,6 +88,7 @@ func (o CustomServerOptions) Run(stopCh <-chan struct{}) error {
 	server.GenericAPIServer.AddPostStartHook("start-pizza-apiserver-informers",
 		func(context genericapiserver.PostStartHookContext) error {
 			config.GenericConfig.SharedInformerFactory.Start(context.StopCh)
+			o.SharedInformerFactory.Start(context.StopCh)
 			return nil
 		},
 	)
@@ -102,6 +105,13 @@ func (o CustomServerOptions) Validate() error {
 
 // Complete fills in fields required to have valid data
 func (o *CustomServerOptions) Complete() error {
+	// register admission plugins
+	pizzatoppings.Register(o.RecommendedOptions.Admission.Plugins)
+
+	// add admission plugins to the RecommendedPluginOrder
+	oldOrder := o.RecommendedOptions.Admission.RecommendedPluginOrder
+	o.RecommendedOptions.Admission.RecommendedPluginOrder =
+		append(oldOrder, "PizzaToppings")
 	return nil
 }
 

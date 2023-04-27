@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"github.com/zeroisme/pizza-apiserver/pkg/apis/restaurant"
 	"github.com/zeroisme/pizza-apiserver/pkg/apis/restaurant/install"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -85,7 +86,7 @@ func (c completedConfig) New() (*CustomServer, error) {
 		GenericAPIServer: genericServer,
 	}
 
-	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo("pizza-apiserver.programming-kubernetes.info", Scheme, metav1.ParameterCodec, Codecs)
+	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(restaurant.GroupName, Scheme, metav1.ParameterCodec, Codecs)
 
 	v1alpha1storage := map[string]rest.Storage{}
 	v1alpha1storage["pizzas"] = customregistry.RESTInPeace(pizzastorage.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter))
