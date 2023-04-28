@@ -12,8 +12,10 @@ import (
 	"github.com/zeroisme/pizza-apiserver/pkg/apiserver"
 	clientset "github.com/zeroisme/pizza-apiserver/pkg/generated/clientset/versioned"
 	informers "github.com/zeroisme/pizza-apiserver/pkg/generated/informers/externalversions"
+	restaurantopenapi "github.com/zeroisme/pizza-apiserver/pkg/generated/openapi"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apiserver/pkg/admission"
+	"k8s.io/apiserver/pkg/endpoints/openapi"
 	"k8s.io/apiserver/pkg/features"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	genericoptions "k8s.io/apiserver/pkg/server/options"
@@ -62,6 +64,16 @@ func (o *CustomServerOptions) Config() (*apiserver.Config, error) {
 	}
 
 	serverConfig := genericapiserver.NewRecommendedConfig(apiserver.Codecs)
+
+	serverConfig.OpenAPIConfig = genericapiserver.DefaultOpenAPIConfig(restaurantopenapi.GetOpenAPIDefinitions, openapi.NewDefinitionNamer(apiserver.Scheme))
+	serverConfig.OpenAPIConfig.Info.Title = "Pizza API"
+	serverConfig.OpenAPIConfig.Info.Version = "1.0"
+
+	if utilfeature.DefaultFeatureGate.Enabled(features.OpenAPIV3) {
+		serverConfig.OpenAPIV3Config = genericapiserver.DefaultOpenAPIV3Config(restaurantopenapi.GetOpenAPIDefinitions, openapi.NewDefinitionNamer(apiserver.Scheme))
+		serverConfig.OpenAPIV3Config.Info.Title = "Pizza API"
+		serverConfig.OpenAPIV3Config.Info.Version = "1.0"
+	}
 	err = o.RecommendedOptions.ApplyTo(serverConfig)
 	if err != nil {
 		return nil, err

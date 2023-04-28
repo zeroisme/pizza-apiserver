@@ -28,7 +28,7 @@ spec:
         - --secure-port=8443
         - --tls-cert-file=/var/run/apiserver/serving-cert/tls.crt
         - --tls-private-key-file=/var/run/apiserver/serving-cert/tls.key
-        - --v=4
+        #- --v=4
         volumeMounts:
         - name: serving-cert
           readOnly: true
