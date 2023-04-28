@@ -76,7 +76,7 @@ func (cfg *Config) Complete() CompletedConfig {
 	return CompletedConfig{&c}
 }
 
-func (c completedConfig) New() (*CustomServer, error) {
+func (c CompletedConfig) New() (*CustomServer, error) {
 	genericServer, err := c.GenericConfig.New("pizza-apiserver", genericapiserver.NewEmptyDelegate())
 	if err != nil {
 		return nil, err
